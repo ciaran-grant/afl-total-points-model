@@ -1,16 +1,3 @@
-
-# Input
-# Given some training data and test data
-# Given a model type
-# Given some hyperparameters
-
-# Action
-# Preprocess the data
-# Fit the model
-
-# Output
-# Save the model
-
 import xgboost as xgb
 import joblib
 
