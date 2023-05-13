@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 @dataclass
 class OptunaXGBParamGrid:
-    trials: int = 100
+    trials: int = 1000
     verbosity: int = 1
     error: str = "reg:squarederror"
     eta_min: float = 0.0001

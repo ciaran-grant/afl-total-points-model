@@ -3,21 +3,7 @@ import xgboost as xgb
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 
-from optuna_xgb_param_grid import OptunaXGBParamGrid
-
-# Input
-# Given some training data
-# Given a model type
-# Given some hyperparameters and ranges
-
-# Action
-# Split into training and validation sets
-# Tune hyperparameters using CV or bootstrapping
-# Identify best hyperparameters
-
-# Output
-# Hyperparameters from best performing model
-
+from total_points_model.domain.contracts.optuna_xgb_param_grid import OptunaXGBParamGrid
 
 class HyperparameterTuner:
     

@@ -1,4 +1,4 @@
-from preprocessing_functions import score_col_splitter, create_team_rolling_averages, rename_team_stats
+from total_points_model.domain.preprocessing.preprocessing_functions import score_col_splitter, create_team_rolling_averages, rename_team_stats
 from sklearn.base import BaseEstimator, TransformerMixin
 
 import pandas as pd
