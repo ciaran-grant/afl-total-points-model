@@ -32,7 +32,7 @@ def create_team_rolling_averages(X, team, rolling_window = 2):
     X_team['Home'] = np.where(X_team['Home_Team'] == team, "Home", 'Away')
     X_team = X_team.sort_values(by = "Date")
     
-    quarters_list = ['Q1', 'Q2', 'Q3', 'Q4']
+    quarters_list = ['Q4']
     stats_list = ['Score', 'Goals', 'Behinds', 'Shots', 'Conversion']
     quarter_stats_list = [x+"_"+y for x in quarters_list for y in stats_list]
     

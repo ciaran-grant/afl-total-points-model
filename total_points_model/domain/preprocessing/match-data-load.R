@@ -5,43 +5,45 @@ library(plyr)
 library(data.table)
 # Load in Stats object
 Stats = load_stats()
-# Specify years
-seasons <- c("2005","2006","2007","2008","2009","2010","2011","2012","2013",
-             "2014","2015","2016","2017","2018","2019","2020","2021", "2022")
 
-round_metadata_list = c(".consolidated_metadata",".__enclos_env__","Metadata","clone","initialize")
+# Get match_stats
+match_stats = Stats$Match_Stats()
 
-afl_api_match_stats <- list()
-afl_tables_match_stats <- list()
-fryzigg_match_stats <- list()
+# Rename
+setnames(match_stats, old = c('Total Game Score', "Home Win"), new = c('Total_Game_Score', "Home_Win"))
 
-for (season in seasons){
-  print(season)
-  round_list = sort(names(Stats)[grepl(paste0("^",season), names(Stats))])
-  for (round in round_list){
-    print(round)
-    Stats_round = Stats[[round]]
-    match_list= sort(setdiff(names(Stats_round), round_metadata_list))
-    for (match in match_list){
-      Stats_match = Stats_round[[match]]
-      print(match)
-      afl_api_match_stats = rbind.fill(afl_api_match_stats, Stats_match[['AFL_API_Fixture_And_Results']])
-      afl_tables_match_stats = rbind.fill(afl_tables_match_stats, Stats_match[['AFLTables_Match_Summary']])
-      fryzigg_match_stats = rbind.fill(fryzigg_match_stats, Stats_match[['Fryzigg_Match_Summary']])
-      }
-    
-  }
-}
+# Merge on Home Ground info - is Home Team actually playing at Home?
+venue_info = Stats$Venues
+venue_info = venue_info[, .(Venue, Ground_Width, Ground_Length)]
+match_stats <- merge(match_stats, venue_info, by = "Venue")
 
-afl_api_match_stats <- data.table(afl_api_match_stats)
-afl_tables_match_stats <- data.table(afl_tables_match_stats)
-fryzigg_match_stats <- data.table(fryzigg_match_stats)
+# Merge on Venue information - length and width
+team_info = Stats$Team_Info
+team_info = team_info[, .(Team, Home_Ground_1, Home_Ground_2, Home_Ground_3)]
+match_stats <- merge(match_stats, team_info, by.x = "Home_Team", by.y = "Team")
 
-# Merge into single dataset
-afl_tables_cols <- c("Match_ID", setdiff(names(afl_tables_match_stats), names(afl_api_match_stats)))
-match_data <- merge(afl_api_match_stats, afl_tables_match_stats[, ..afl_tables_cols], by = "Match_ID")
-fryzigg_cols <- c("Match_ID", setdiff(names(fryzigg_match_stats), names(match_data)))
-match_data <- merge(match_data, fryzigg_match_stats[, ..fryzigg_cols], by = "Match_ID")
+match_stats[is.na(Home_Ground_2), Home_Ground_2 := ""]
+match_stats[is.na(Home_Ground_3), Home_Ground_3 := ""]
+match_stats[, Home_Ground := ifelse(Venue == Home_Ground_1, "Primary Home",
+                                    ifelse(Venue == Home_Ground_2, "Secondary Home",
+                                           ifelse(Venue == Home_Ground_3, "Tertiary Home",
+                                                 "Neutral")))]
+# Remove unnecessary columns
+match_stats[, c("Home_Ground_1", "Home_Ground_2", "Home_Ground_3") := NULL]
+match_stats[, c("Home_Odds_Close", "Away_Odds_Close",        
+                "Home_Line_Close", "Away_Line_Close",       
+                "Home_Line_Odds_Close", "Away_Line_Odds_Close",   
+                "Total_Score_Close", "Total_Score_Over_Close", 
+                "Total_Score_Under_Close", "Umpires") := NULL]
+
+# Create ModellingFilter
+match_stats[, DateTime := as_datetime(Date)]
+match_stats[, Date := as_date(Date)]
+
+match_stats[, ModellingFilter := ifelse(Date < '2019-01-01', TRUE, FALSE)]
+
+# Sort by Date
+setorder(match_stats, cols = "DateTime")
 
 # Save data
-write.csv(match_data, "/data/merged-data/afl_match_data.csv", row.names = FALSE)
+write.csv(match_stats, "//Users/ciaran/Documents/Projects/AFL/total-points-score-model/data/raw-data/afl_match_stats.csv", row.names = FALSE)

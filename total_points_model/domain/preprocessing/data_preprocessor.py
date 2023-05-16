@@ -1,28 +1,33 @@
 from total_points_model.domain.preprocessing.preprocessing_functions import score_col_splitter, create_team_rolling_averages, rename_team_stats
+from total_points_model.domain.contracts.modelling_data_contract import ModellingDataContract
 from sklearn.base import BaseEstimator, TransformerMixin
 
 import pandas as pd
 import numpy as np
 
+from total_points_model.domain.contracts.mappings import Mappings
+
 class DataPreprocessor(BaseEstimator, TransformerMixin):
     
-    def __init__(self, rename_dict):
-        self.rename_dict = rename_dict
-     
+    def __init__(self, mapping):
+        self.mapping = mapping
+        self.ModellingDataContract = ModellingDataContract
+        
     def fit(self, X, y=None):
         
         X_copy = X.copy()
         
-        X_copy = X_copy.rename(columns=self.rename_dict)
+        X_copy['Date'] = pd.to_datetime(X_copy['Date'])
         
         X_copy['random5'] = np.random.randint(1, 6, X.shape[0])
         
-        X_copy = score_col_splitter(X_copy, "Q1_Score")
-        X_copy = score_col_splitter(X_copy, "Q2_Score")
-        X_copy = score_col_splitter(X_copy, "Q3_Score")
+        X_copy['Round'] = X_copy['Round_ID'].apply(lambda x: x[-2:])
+
+        X_copy = X_copy.replace(self.mapping)
+
         X_copy = score_col_splitter(X_copy, "Q4_Score")
         
-        teams_list = list(X_copy['Home_Team'].unique())
+        teams_list = self.ModellingDataContract.team_list
         team_df_list = []
         for team in teams_list:
             X_team = create_team_rolling_averages(X_copy, team)
@@ -35,7 +40,7 @@ class DataPreprocessor(BaseEstimator, TransformerMixin):
         X_away = rename_team_stats(X_team_data, "Away")
         X_copy = pd.merge(X_copy, X_away, how = 'left', on = 'Match_ID')
 
-        known_cols_list = ['Home_Team', 'Away_Team', 'Venue', 'Round_ID', 'Year', 'City', 'Temperature', 'Weather_Type', 'random5']
+        known_cols_list = ['Home_Team', 'Away_Team', 'Venue', 'Round', 'Year', 'City', 'Temperature', 'Weather_Type', 'random5']
         rolling_cols_list = [x for x in list(X_copy) if "avg" in x]
         modelling_cols = known_cols_list + rolling_cols_list
 
@@ -50,16 +55,17 @@ class DataPreprocessor(BaseEstimator, TransformerMixin):
     
     def transform(self, X):
         
-        X = X.rename(columns=self.rename_dict)
-        
+        X['Date'] = pd.to_datetime(X['Date'])
+     
         X['random5'] = np.random.randint(1, 6, X.shape[0])
-        
-        X = score_col_splitter(X, "Q1_Score")
-        X = score_col_splitter(X, "Q2_Score")
-        X = score_col_splitter(X, "Q3_Score")
+
+        X['Round'] = X['Round_ID'].apply(lambda x: x[-2:])
+
+        X = X.replace(self.mapping)
+
         X = score_col_splitter(X, "Q4_Score")
         
-        teams_list = list(X['Home_Team'].unique())
+        teams_list = self.ModellingDataContract.team_list
         team_df_list = []
         for team in teams_list:
             X_team = create_team_rolling_averages(X, team)
@@ -72,9 +78,11 @@ class DataPreprocessor(BaseEstimator, TransformerMixin):
         X_away = rename_team_stats(X_team_data, "Away")
         X = pd.merge(X, X_away, how = 'left', on = 'Match_ID')
 
-        known_cols_list = ['Home_Team', 'Away_Team', 'Venue', 'Round_ID', 'Year', 'City', 'Temperature', 'Weather_Type', 'random5']
+        known_cols_list = ['Home_Team', 'Away_Team', 'Venue', 'Round', 'Year', 'City', 'Temperature', 'Weather_Type', 'random5']
         rolling_cols_list = [x for x in list(X) if "avg" in x]
         modelling_cols = known_cols_list + rolling_cols_list
+
+        X = X.sort_values(by = "Date")
 
         X = X[modelling_cols]
         
@@ -88,6 +96,7 @@ class DataPreprocessor(BaseEstimator, TransformerMixin):
                 X[col] = 0
                 
         X = X[self.expected_dummy_cols]
+        
 
         return X
     
