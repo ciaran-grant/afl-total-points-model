@@ -1,3 +1,5 @@
+from total_points_model.domain.contracts.modelling_data_contract import ModellingDataContract
+
 import xgboost as xgb
 import joblib
 
@@ -44,18 +46,19 @@ class SuperXGBRegressor(SuperModel):
                                         subsample = self.params['subsample'],
                                         colsample_bytree = self.params['colsample_bytree'],
                                         reg_alpha = self.params['alpha'],
-                                        reg_lambda = self.params['lambda']
-
+                                        reg_lambda = self.params['lambda'],
+                                        monotone_constraints = self.params['monotone_constraints']
                                         )
         
-        self.xgb_model = self.xgb_reg.fit(X = self.X_train,
+        X_train_features = self.X_train.drop(columns = ModellingDataContract.ID_COL)
+        X_test_features = self.X_test.drop(columns = ModellingDataContract.ID_COL)
+        
+        self.xgb_model = self.xgb_reg.fit(X = X_train_features,
                                           y = self.y_train,
-                                          eval_set = [(self.X_train, self.y_train), (self.X_test, self.y_test)])
+                                          eval_set = [(X_train_features, self.y_train), (X_test_features, self.y_test)])
         
     def predict(self, X):
         
-        # dmatrix = xgb.DMatrix(X)
-
         return self.xgb_model.predict(X)
     
     def export_model(self, file_path):

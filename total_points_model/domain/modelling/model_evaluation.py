@@ -4,6 +4,7 @@ from pandas.api.types import is_numeric_dtype
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 import xgboost as xgb
 import shap
@@ -31,14 +32,31 @@ class ModelEvaluator():
         plt.ylabel("Predicted values")
         plt.show()
         
+    def plot_distribution(self):
+        """Plot actual vs. predicted values"""
+                
+        # Plot actual vs. predicted values
+        fig = sns.kdeplot(self.actual, shade=True, color="r")
+        fig = sns.kdeplot(self.expected, shade=True, color="b")
+        plt.xlabel("Total Game Score")
+        plt.legend(labels = ["Actual", "Expected"])
+        plt.show()
+        
     def _get_feature_plot_data(self, feature):
-            
-        plot_dict = {
-        'actual':self.actual,
-        'expected':self.expected,
-        'compare':self.compare,
-        'feature':self.data[feature]
-        }
+        
+        if self.compare_name is not None:
+            plot_dict = {
+                'actual':self.actual,
+                'expected':self.expected,
+                'compare':self.compare,
+                'feature':self.data[feature]
+                }
+        else:
+            plot_dict = {
+                'actual':self.actual,
+                'expected':self.expected,
+                'feature':self.data[feature]
+                }
         plot_data = pd.DataFrame(plot_dict)
 
         if is_numeric_dtype(plot_data['feature']) & (len(np.unique(plot_data['feature'])) > 50):
@@ -47,12 +65,19 @@ class ModelEvaluator():
             labels = [f'({edges[i]}, {edges[i+1]}]' for i in range(bins)]
             plot_data['feature'] = pd.cut(plot_data['feature'], bins = bins, labels = labels)
             
-        feature_plot_data = plot_data.groupby('feature').agg(
-            actual = ('actual', 'mean'),
-            expected = ('expected', 'mean'),
-            compare = ('compare', 'mean'),
-            exposure = ('actual', 'size'),
-            ).reset_index()
+        if self.compare_name is not None:
+            feature_plot_data = plot_data.groupby('feature').agg(
+                actual = ('actual', 'mean'),
+                expected = ('expected', 'mean'),
+                compare = ('compare', 'mean'),
+                exposure = ('actual', 'size'),
+                ).reset_index()
+        else:
+            feature_plot_data = plot_data.groupby('feature').agg(
+                actual = ('actual', 'mean'),
+                expected = ('expected', 'mean'),
+                exposure = ('actual', 'size'),
+                ).reset_index()
         
         return feature_plot_data
     
@@ -66,7 +91,8 @@ class ModelEvaluator():
         ax1.bar(feature_plot_data['feature'],feature_plot_data['exposure'], alpha = 0.5)
         ax2.plot(feature_plot_data['feature'], feature_plot_data['actual'], label = "Actual", color = "r")
         ax2.plot(feature_plot_data['feature'], feature_plot_data['expected'], label = "Expected", color = "green")
-        ax2.plot(feature_plot_data['feature'], feature_plot_data['compare'], label = "Compare", color = "blue")
+        if self.compare_name is not None:
+            ax2.plot(feature_plot_data['feature'], feature_plot_data['compare'], label = "Compare", color = "blue")
 
         ax1.set_xlabel(feature)
         for tick in ax1.get_xticklabels():
@@ -152,6 +178,17 @@ class XGBModelEvaluator(ModelEvaluator):
         if not(self.shap_values):
             self._get_shap_values()
         shap.summary_plot(self.shap_values, self.data[self.feature_names], max_display = max_display)
+        
+    def get_ranked_feature_importance(self):
+        
+        if not(self.shap_values):
+            self._get_shap_values()    
+        
+        vals= np.abs(self.shap_values.values).mean(0)
+        feature_importance = pd.DataFrame(list(zip(self.feature_names, vals)), columns=['col_name','feature_importance_vals'])
+        feature_importance.sort_values(by=['feature_importance_vals'], ascending=False,inplace=True)
+
+        return list(feature_importance['col_name'])
         
     def plot_pdp(self, feature_list):
         """Plot partial dependence plot for a given feature"""
