@@ -512,10 +512,12 @@ class Mappings:
         ("Venue", "Roof"):{
             'Adelaide Oval':"No Roof",
             'Bellerive Oval':"No Roof",
+            'Blacktown':"No Roof",
             'Carrara':"No Roof",
             'Cazalys Stadium':"No Roof",
             'Docklands':"Roof",
             'Eureka Stadium':"No Roof",
+            'Football Park':"No Roof",
             'Gabba':"No Roof",
             'Jiangwan Stadium':"No Roof",
             'Kardinia Park':"No Roof",
@@ -523,11 +525,14 @@ class Mappings:
             'Manuka Oval':"No Roof",
             'Marrara Oval':"No Roof",
             'Perth Stadium':"No Roof",
+            'Princes Park':"No Roof",
             'Riverway Stadium':"No Roof",
             'S.C.G.':"No Roof",
             'Stadium Australia':"No Roof",
+            'Subiaco':"No Roof",
             'Sydney Showground':"No Roof",
             'Traeger Park':"No Roof",
+            'Wellington':"No Roof",
             'York Park':"No Roof"
         }
     }
