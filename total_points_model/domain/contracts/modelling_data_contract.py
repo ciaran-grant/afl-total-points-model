@@ -61,8 +61,3 @@ class ModellingDataContract:
         'ELO_probs_diff',
         'ELO_probs_abs_diff'
     ]
-    
-    model_feature_cols = [
-    
-    ]
-    
