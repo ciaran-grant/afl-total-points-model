@@ -6,6 +6,15 @@ import joblib
 class SuperModel:
     
     def __init__(self, X_train, y_train, X_test, y_test, params):
+        """ Model agnostic class that requries training data, test data and parameters.
+
+        Args:
+            X_train (Dataframe): Training dataframe including modelling features
+            y_train (Array): Training set response
+            X_test (Dataframe): Test dataframe including modelling features
+            y_test (Array): Test set response
+            params (Dict): Model parameters
+        """
         self.X_train = X_train
         self.y_train = y_train
         self.X_test = X_test
@@ -14,11 +23,25 @@ class SuperModel:
     
 class SuperXGBRegressor(SuperModel):
     def __init__(self, X_train, y_train, X_test, y_test, params):
+        """ XGBoost Regression model that requries training data, test data and parameters.
+
+        Args:
+            X_train (Dataframe): Training dataframe including modelling features
+            y_train (Array): Training set response
+            X_test (Dataframe): Test dataframe including modelling features
+            y_test (Array): Test set response
+            params (Dict): XGBoost model parameters
+        """
         super().__init__(X_train, y_train, X_test, y_test, params)
         
         self.xgb_params = self._get_xgb_hyperparameters()
     
     def _get_xgb_hyperparameters(self):
+        """ From given parameters dictionary, gets requried hyperparameters for XGBoost.
+
+        Returns:
+            Dict: XGBoost model hyperparameters
+        """
         
         xgb_params = {
             'max_depth': self.params['max_depth'],

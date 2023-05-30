@@ -2,6 +2,18 @@ from total_points_model.domain.contracts.modelling_data_contract import Modellin
 import pandas as pd
 
 def calculate_elo_ratings(data, k_factor):
+    """ Given input dataframe with Match and Result details.
+        Calculates ELO and ELO probabilities for every team.
+
+    Args:
+        data (Dataframe): Dataframe to calculate ELO on.
+        k_factor (Int): Specify the size of adjustment factor.
+
+    Returns:
+        elos (Dict): ELO ratings for each team before each match.
+        elo_dict (Dict): Final ELO ratings for each team at end of data.
+        elo_probs (Dict): Probabilities of each team winning each match. 
+    """
     
     # Initialise a dictionary with default elos for each team
     elo_dict = {team: 1500 for team in ModellingDataContract.team_list}
@@ -43,6 +55,16 @@ def calculate_elo_ratings(data, k_factor):
     return elos, elo_dict, elo_probs
 
 def convert_elo_dict_to_dataframe(elos, elo_probs):
+    """ Converts dictionary of ELO and ELO probabilities to dataframes to merge.
+
+    Args:
+        elos (Dict): ELO ratings for each team before each match.
+        elo_probs (Dict): Probabilities of each team winning each match. 
+
+    Returns:
+        elos_df (Dataframe): ELO ratings for each team before each match by Match_ID
+        elo_probs_df (Dataframe): Probabilities of each team winning each match by Match_ID
+    """
     
     elo_df = pd.DataFrame(list(elos.items()), columns = ['Match_ID', 'ELO_list'])
     elo_df[['ELO_Home', 'ELO_Away']] = elo_df['ELO_list'].tolist()
@@ -59,6 +81,16 @@ def convert_elo_dict_to_dataframe(elos, elo_probs):
     return elo_df, elo_probs_df
 
 def merge_elo_ratings(X, elos, elo_probs):
+    """ Merge ELO factors back onto original dataframe by Match ID
+
+    Args:
+        X (Dataframe): Original ELO calculation dataframe with Match ID
+        elos_df (Dataframe): ELO ratings for each team before each match by Match_ID
+        elo_probs_df (Dataframe): Probabilities of each team winning each match by Match_ID
+
+    Returns:
+        Dataframe : Input data with ELO columns merged on.
+    """
     
     elo_df, elo_probs_df = convert_elo_dict_to_dataframe(elos, elo_probs)
     

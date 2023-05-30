@@ -2,6 +2,8 @@ from dataclasses import dataclass
 
 @dataclass
 class ModellingDataContract:
+    """ Holds details for defining modelling terms in a single place.
+    """
     
     ID_COL = "Match_ID"
     RESPONSE = "Total_Game_Score"
