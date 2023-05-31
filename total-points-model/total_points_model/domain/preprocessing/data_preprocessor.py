@@ -9,13 +9,33 @@ import numpy as np
 from total_points_model.domain.contracts.mappings import Mappings
 
 class DataPreprocessor(BaseEstimator, TransformerMixin):
+    """ Preprocessing class and functions for training total game score model.
+    """
     
     def __init__(self, Mappings, rolling_dict):
+        """ Specify mappings and rolling average columns to create.
+
+        Args:
+            Mappings (Mappings): Mappings object specifying mapping and transformations.
+            rolling_dict (Dict): Dictionary specifying columns and types of rolling average columns.
+        """
         self.Mappings = Mappings
         self.rolling_dict = rolling_dict
         self.ModellingDataContract = ModellingDataContract
         
     def create_team_rolling_average_features(self, X, column, rolling_window, weights):
+        """ Converts match level home and away features into team level for and against
+            features. Then calculates rolling average as specified and merges back onto
+            match level data.
+        Args:
+            X (DataFrame): Match level dataframe with rolling average columns.
+            column (Str): Column to source the rolling average from.
+            rolling_window (Int): How many games to include in the rolling average
+            weights (List): (Optional) Weights to apply to weighted average.
+
+        Returns:
+            DataFrame : Input data with rolling average columns merged on.
+        """
     
         team_data_list = []
         for team in self.ModellingDataContract.team_list:
@@ -31,6 +51,16 @@ class DataPreprocessor(BaseEstimator, TransformerMixin):
         return X
     
     def create_elo_rating_factor(self, X):
+        """ Given the input data, calculates a basic ELO rating for both Home and Away teams.
+            Creates ELO_home, ELO_away, ELO_probs_home, ELO_probs_away.
+            Merges back onto input data.
+
+        Args:
+            X (DataFrame): Dataframe including match scores and teams to calculate ELOs from.
+
+        Returns:
+            DataFrame: Input dataframe returned with ELO columns merged on.
+        """
         
         elos, elo_dict, elo_probs  = calculate_elo_ratings(X, k_factor=ModellingDataContract.ELO_K_FACTOR)
         
@@ -38,7 +68,16 @@ class DataPreprocessor(BaseEstimator, TransformerMixin):
         
         return X
         
-    def fit(self, X, y=None):
+    def fit(self, X):
+        """ Fits preprocessor to training data.
+            Learns expected columns and mean imputations. 
+
+        Args:
+            X (Dataframe): Training dataframe to fit preprocessor to.
+
+        Returns:
+            self: Preprocessor learns expected colunms and means to impute.
+        """
         
         X_copy = X.copy()
         
@@ -86,6 +125,14 @@ class DataPreprocessor(BaseEstimator, TransformerMixin):
         return self
     
     def transform(self, X):
+        """ Applies transformations and preprocessing steps to dataframe.
+
+        Args:
+            X (Dataframe): Training or unseen data to transform.
+
+        Returns:
+            Dataframe: Transformed data with modelling columns and no missing values.
+        """
         
         # Feature Engineering
         X['Date'] = pd.to_datetime(X['Date'])

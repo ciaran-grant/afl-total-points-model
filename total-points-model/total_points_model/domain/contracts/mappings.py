@@ -2,6 +2,11 @@ from dataclasses import dataclass
 import numpy as np
 @dataclass
 class Mappings:
+    """ Holds different types of mapping and transformations including:
+        transformation - transform column inplace.
+        new_features - create new features with mappings.
+        meta - higher level mappings that are useful in feature creation.
+    """
     transformation_mappings = {
         'Round': {
             '01':1,

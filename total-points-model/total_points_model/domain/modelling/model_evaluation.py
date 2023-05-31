@@ -10,7 +10,19 @@ import xgboost as xgb
 import shap
 
 class ModelEvaluator():
+    """ Model agnostic model evaluation class.
+    """
     def __init__(self, model, data, actual_name, expected_name, compare_name = None):
+        """ Given a model, data, actual, expected and optionally comparison data.
+            Sets up easy evaluation methods.
+
+        Args:
+            model: Can be any model class.
+            data (Dataframe): Dataframe to evaluate model on.
+            actual_name (Str): Column name with actual values.
+            expected_name (Str): Column name with expected values.
+            compare_name (Str, optional): Column name with comparison values. Defaults to None.
+        """
         self.model = model
         self.data: pd.DataFrame = data
         self.actual_name: str = actual_name
@@ -43,7 +55,15 @@ class ModelEvaluator():
         plt.show()
         
     def _get_feature_plot_data(self, feature):
-        
+        """ Aggregates actual, expected and comparison columns by specified feature.
+            For numeric continuous features, creates bins.
+
+        Args:
+            feature (Str): Feature to plot.
+
+        Returns:
+            Dataframe: Aggregated data by feature.
+        """
         if self.compare_name is not None:
             plot_dict = {
                 'actual':self.actual,
@@ -82,6 +102,11 @@ class ModelEvaluator():
         return feature_plot_data
     
     def plot_feature_ave(self, feature):
+        """ Plots Actual v Expected (v Comparison) for feature.
+
+        Args:
+            feature (Str): Feature to plot.
+        """
         
         feature_plot_data = self._get_feature_plot_data(feature)
     
@@ -107,7 +132,13 @@ class ModelEvaluator():
         fig.show()
         
     def _get_double_lift_chart_data(self):
-        
+        """ Aggregates actual, expected and comparison columns into Ventiles.
+            Sorted from low to high by expected / comparison ratio.
+
+        Returns:
+            Dataframe: Aggregated data by expected to comparison ratio.
+        """
+                
         plot_dict = {
             'actual':self.actual,
             'expected':self.expected,
@@ -134,6 +165,8 @@ class ModelEvaluator():
         return double_lift_data
     
     def plot_double_lift_chart(self):
+        """ Plots double lift chart.
+        """
     
         double_lift_data = self._get_double_lift_chart_data()
 
@@ -159,6 +192,8 @@ class ModelEvaluator():
 
     
 class XGBModelEvaluator(ModelEvaluator):
+    """XGBoost specific model evaluation class.
+    """
     def __init__(self, model, data, actual_name, expected_name, compare_name = None):
         super().__init__(model, data, actual_name, expected_name, compare_name)
     
@@ -170,6 +205,8 @@ class XGBModelEvaluator(ModelEvaluator):
         xgb.plot_importance(self.model, max_num_features = max_num_features, importance_type = importance_type)
          
     def _get_shap_values(self):
+        """Gets SHAP values for XGBoost model.
+        """
         explainer = shap.Explainer(self.model)
         self.shap_values = explainer(self.data[self.feature_names])
 
@@ -180,6 +217,11 @@ class XGBModelEvaluator(ModelEvaluator):
         shap.summary_plot(self.shap_values, self.data[self.feature_names], max_display = max_display)
         
     def get_ranked_feature_importance(self):
+        """ For XGBoost model, ranks features by average SHAP value.
+
+        Returns:
+            List: Ranked list of importance features.
+        """
         
         if not(self.shap_values):
             self._get_shap_values()    
