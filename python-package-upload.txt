@@ -15,3 +15,7 @@ python-package-upload
   - don't need sys path and remove any hard coded directories.
 8. debug and repeat 5-7 until happy
 9. Deploy to PyPi
+   - python3 -m twine upload dist/*
+
+10. New environment install python, then
+   - python3 -m pip install total-points-model
