@@ -46,4 +46,4 @@ match_stats[, ModellingFilter := ifelse(Date < '2019-01-01', TRUE, FALSE)]
 setorder(match_stats, cols = "DateTime")
 
 # Save data
-write.csv(match_stats, "//Users/ciaran/Documents/Projects/AFL/total-points-score-model/data/raw-data/afl_match_stats.csv", row.names = FALSE)
+write.csv(match_stats, "../afl_match_stats.csv", row.names = FALSE)
