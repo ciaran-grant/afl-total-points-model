@@ -1,0 +1,17 @@
+python-package-upload
+
+1. .venv environment
+2. add pyproject.toml file to directory
+3. only include package sub directory
+4. install build to environment
+5. python3 -m build to build .whl and .tar.gz file
+6. python3 -m twine upload --repository testpypi dist/* 
+   - to upload to testpypi
+
+
+7. Create fresh environment to try and install package.
+  - python3 -m pip install total-points-model==1.0.3 --extra-index-url https://test.pypi.org/simple
+  - installs into environment's site-packages
+  - don't need sys path and remove any hard coded directories.
+8. debug and repeat 5-7 until happy
+9. Deploy to PyPi
