@@ -43,7 +43,7 @@ class SuperXGBRegressor(SuperModel):
             Dict: XGBoost model hyperparameters
         """
         
-        xgb_params = {
+        return {
             'max_depth': self.params['max_depth'],
             'min_child_weight': self.params['min_child_weight'],
             'eta': self.params['eta'],
@@ -51,10 +51,8 @@ class SuperXGBRegressor(SuperModel):
             'lambda': self.params['lambda'],
             'alpha': self.params['alpha'],
             'subsample': self.params['subsample'],
-            'colsample_bytree': self.params['colsample_bytree']
+            'colsample_bytree': self.params['colsample_bytree'],
         }
-        
-        return xgb_params
     
     def fit(self):
                 

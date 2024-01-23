@@ -18,26 +18,26 @@ def calculate_elo_ratings(data, k_factor):
     # Initialise a dictionary with default elos for each team
     elo_dict = {team: 1500 for team in ModellingDataContract.team_list}
     elos, elo_probs = {}, {}
-    
+
     for index, row in data.iterrows():
         game_id = row['Match_ID']
         margin = row['Margin']
-        
-        if game_id in elos.keys():
+
+        if game_id in elos:
             continue
-        
+
         home_team = row['Home_Team']
         away_team = row['Away_Team']
-        
+
         home_team_elo = elo_dict[home_team]
         away_team_elo = elo_dict[away_team]
-        
+
         prob_win_home = 1 / (1 + 10**((away_team_elo - home_team_elo) / 400))
         prob_win_away = 1 - prob_win_home
-        
+
         elos[game_id] = [home_team_elo, away_team_elo]
         elo_probs[game_id] = [prob_win_home, prob_win_away]
-        
+
         if margin > 0:
             new_home_team_elo = home_team_elo + k_factor*(1 - prob_win_home)
             new_away_team_elo = away_team_elo + k_factor*(0 - prob_win_away)
@@ -47,11 +47,11 @@ def calculate_elo_ratings(data, k_factor):
         elif margin == 0:
             new_home_team_elo = home_team_elo + k_factor*(0.5 - prob_win_home)
             new_away_team_elo = away_team_elo + k_factor*(0.5 - prob_win_away)
-            
+
         elo_dict[home_team] = new_home_team_elo
         elo_dict[away_team] = new_away_team_elo
 
-    
+
     return elos, elo_dict, elo_probs
 
 def convert_elo_dict_to_dataframe(elos, elo_probs):

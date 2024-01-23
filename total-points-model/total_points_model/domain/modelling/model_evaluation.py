@@ -84,22 +84,25 @@ class ModelEvaluator():
             edges = np.linspace(plot_data['feature'].min(), plot_data['feature'].max(), bins+1).astype(int)
             labels = [f'({edges[i]}, {edges[i+1]}]' for i in range(bins)]
             plot_data['feature'] = pd.cut(plot_data['feature'], bins = bins, labels = labels)
-            
-        if self.compare_name is not None:
-            feature_plot_data = plot_data.groupby('feature').agg(
-                actual = ('actual', 'mean'),
-                expected = ('expected', 'mean'),
-                compare = ('compare', 'mean'),
-                exposure = ('actual', 'size'),
-                ).reset_index()
-        else:
-            feature_plot_data = plot_data.groupby('feature').agg(
-                actual = ('actual', 'mean'),
-                expected = ('expected', 'mean'),
-                exposure = ('actual', 'size'),
-                ).reset_index()
-        
-        return feature_plot_data
+
+        return (
+            plot_data.groupby('feature')
+            .agg(
+                actual=('actual', 'mean'),
+                expected=('expected', 'mean'),
+                compare=('compare', 'mean'),
+                exposure=('actual', 'size'),
+            )
+            .reset_index()
+            if self.compare_name is not None
+            else plot_data.groupby('feature')
+            .agg(
+                actual=('actual', 'mean'),
+                expected=('expected', 'mean'),
+                exposure=('actual', 'size'),
+            )
+            .reset_index()
+        )
     
     def plot_feature_ave(self, feature):
         """ Plots Actual v Expected (v Comparison) for feature.

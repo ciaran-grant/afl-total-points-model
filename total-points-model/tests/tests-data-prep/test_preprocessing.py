@@ -7,41 +7,43 @@ def test_mappings():
     from total_points_model.domain.contracts.mappings import Mappings
 
     mappings = Mappings
-    
+
     X = pd.DataFrame({
         'Match_ID':['200501_BrisbaneLions_StKilda', '200501_NorthMelbourne_Carlton'],
         'Venue':['Gabba', 'Docklands']
     })
     X['Roof'] = X['Venue'].replace(mappings.new_feature_mappings[('Venue', 'Roof')])
 
-    assert set(X['Roof']) == set(['No Roof', 'Roof'])
+    assert set(X['Roof']) == {'No Roof', 'Roof'}
 
 # Test score_col_splitter
 def test_score_col_splitter():
     
     from total_points_model.domain.preprocessing.preprocessing_functions import score_col_splitter
-    
+
     X = pd.DataFrame({
         'Match_ID':['200501_BrisbaneLions_StKilda', '200501_NorthMelbourne_Carlton'],
         'Q4_Score':['18.8.116 - 13.15.93', '16.9.105 - 12.13.85']
     })
     X = score_col_splitter(X, "Q4_Score")
 
-    assert set(['Home_Q4_Score',
-                'Home_Q4_Goals',
-                'Home_Q4_Behinds',
-                'Home_Q4_Shots',
-                'Home_Q4_Conversion',
-                'Away_Q4_Score',
-                'Away_Q4_Goals',
-                'Away_Q4_Behinds',
-                'Away_Q4_Shots',
-                'Away_Q4_Conversion',
-                'Total_Q4_Score',
-                'Total_Q4_Goals',
-                'Total_Q4_Behinds',
-                'Total_Q4_Shots',
-                'Total_Q4_Conversion']).issubset(X.columns)
+    assert {
+        'Home_Q4_Score',
+        'Home_Q4_Goals',
+        'Home_Q4_Behinds',
+        'Home_Q4_Shots',
+        'Home_Q4_Conversion',
+        'Away_Q4_Score',
+        'Away_Q4_Goals',
+        'Away_Q4_Behinds',
+        'Away_Q4_Shots',
+        'Away_Q4_Conversion',
+        'Total_Q4_Score',
+        'Total_Q4_Goals',
+        'Total_Q4_Behinds',
+        'Total_Q4_Shots',
+        'Total_Q4_Conversion',
+    }.issubset(X.columns)
 
 # Test create rolling average
 def test_rolling_average():
@@ -57,9 +59,11 @@ def test_rolling_average():
         'Q4_Score':['18.8.116 - 13.15.93', '16.9.105 - 12.13.85', '15.13.103 - 8.9.57']
     })
     X = score_col_splitter(X, "Q4_Score")
-    
-    X['Total_'+stat+"_avg"+str(rolling_window)] = create_rolling_average(X, 'Total_'+stat, rolling_window)
-    
+
+    X[f'Total_{stat}_avg{rolling_window}'] = create_rolling_average(
+        X, f'Total_{stat}', rolling_window
+    )
+
     assert X.loc[0:1, 'Total_Q4_Shots'].mean() == X.loc[2, 'Total_Q4_Shots_avg2']
 
 # Test weighted rolling average
@@ -77,8 +81,10 @@ def test_weighted_rolling_average():
         'Q4_Score':['18.8.116 - 13.15.93', '16.9.105 - 12.13.85', '15.13.103 - 8.9.57']
     })
     X = score_col_splitter(X, "Q4_Score")
-    
-    X['Total_'+stat+"_wavg"+str(rolling_window)] = create_weighted_rolling_average(X, 'Total_'+stat, rolling_window, weights)
+
+    X[f'Total_{stat}_wavg{rolling_window}'] = create_weighted_rolling_average(
+        X, f'Total_{stat}', rolling_window, weights
+    )
     print(X[['Total_Q4_Shots', 'Total_Q4_Shots_wavg2']].head())
     assert (X.loc[0, 'Total_Q4_Shots']*weights[0] + X.loc[1, 'Total_Q4_Shots']*weights[1]) == X.loc[2, 'Total_Q4_Shots_wavg2']
 
@@ -97,8 +103,10 @@ def test_exp_weighted_rolling_average():
         'Q4_Score':['18.8.116 - 13.15.93', '16.9.105 - 12.13.85', '15.13.103 - 8.9.57']
     })
     X = score_col_splitter(X, "Q4_Score")
-    
-    X['Total_'+stat+"_exp_wavg"+str(span_window)] = create_exp_weighted_rolling_average(X, 'Total_'+stat, span_window)
+
+    X[
+        f'Total_{stat}_exp_wavg{span_window}'
+    ] = create_exp_weighted_rolling_average(X, f'Total_{stat}', span_window)
 
     assert (X.loc[0, 'Total_Q4_Shots']*(1-alpha) + X.loc[1, 'Total_Q4_Shots']) / (1 + (1 - alpha)) == X.loc[2, 'Total_Q4_Shots_exp_wavg2']
 
