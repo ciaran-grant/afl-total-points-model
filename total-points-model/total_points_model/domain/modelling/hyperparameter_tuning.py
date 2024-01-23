@@ -144,19 +144,19 @@ class XGBYearHyperparameterTuner(HyperparameterTuner):
         Returns:
             self: Save study down within XGBYearHyperparameterTuner object.
         """
-    
+
         self.study = optuna.create_study(pruner = optuna.pruners.MedianPruner(), direction='minimize')
         self.study.optimize(self.objective, n_trials=self.optuna_grid.trials)
-        
+
         print("Number of finished trials: ", len(self.study.trials))
         print("Best trial:")
         trial = self.study.best_trial
 
-        print("  Value: {}".format(trial.value))
+        print(f"  Value: {trial.value}")
         print("  Params: ")
         for key, value in trial.params.items():
-            print("    {}: {}".format(key, value))
-            
+            print(f"    {key}: {value}")
+
         return self.study
     
     def get_best_params(self):
